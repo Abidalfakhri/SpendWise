@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
   PieChart,
@@ -54,6 +55,7 @@ const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [income, setIncome] = useState(0);
   const [expense, setExpense] = useState(0);
   const [categorySummary, setCategorySummary] = useState([]);
@@ -146,8 +148,8 @@ export default function Dashboard() {
                 👋
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-white">
-                  Selamat {timeOfDay}, Abid
+                <h1 className="text-3xl font-bold mb-4">
+                  Selamat datang, {user?.name || "Tamu"} 👋
                 </h1>
                 <p className="text-slate-400 text-sm mt-1">
                   {new Date().toLocaleDateString("id-ID", { 
