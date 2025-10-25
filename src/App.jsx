@@ -12,7 +12,7 @@ import Categories from "./pages/Categories";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Mutasi from "./pages/Mutasi";
-import Dompet from "./pages/dompet";
+import Dompet from "./pages/Dompet";
 import TargetKeuangan from './pages/TargetKeuangan';
 import Laporan from './pages/Laporan';
 
