@@ -1,14 +1,12 @@
-/* === Modern Pro Finance Theme === */
 
-/* Default (Dark Mode) */
 :root {
-  --color-bg: #0b0f19;          /* Dark navy blue */
-  --color-surface: #111827;     /* Deep slate */
-  --color-surface-alt: #1e293b; /* Card background */
-  --color-border: #273449;      /* Border tone */
-  --color-text: #f1f5f9;        /* Light text */
-  --color-muted: #94a3b8;       /* Muted text */
-  --color-primary: #14b8a6;     /* Teal */
+  --color-bg: #0b0f19;          
+  --color-surface: #111827;     
+  --color-surface-alt: #1e293b;
+  --color-border: #273449;      
+  --color-text: #f1f5f9;        
+  --color-muted: #94a3b8;       
+  --color-primary: #14b8a6;     
   --color-primary-600: #0d9488;
   --color-accent: #3b82f6;      /* Blue accent */
   --color-gradient: linear-gradient(135deg, #14b8a6 0%, #3b82f6 100%);
