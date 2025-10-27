@@ -2,7 +2,7 @@
 // Format seragam: YYYY-MM-DD
 const dummyTransactions = [
   // === Pemasukan (Income) ===
-  { id: 1, type: "income", category: "Gaji", amount: 9500000, date: "2025-10-01", description: "Gaji Bulanan" },
+  { id: 1, type: "income", category: "Gaji", amount: 15000000, date: "2025-10-01", description: "Gaji Bulanan" },
   { id: 2, type: "income", category: "Investasi", amount: 2200000, date: "2025-10-03", description: "Dividen saham" },
   { id: 3, type: "income", category: "Freelance", amount: 1800000, date: "2025-10-10", description: "Proyek desain UI" },
   { id: 4, type: "income", category: "Bonus", amount: 1250000, date: "2025-10-15", description: "Bonus performa kerja" },
