@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { PlusCircle, Folder } from "lucide-react";
 import baseCategories from "../data/dummyCategories";
 import CategoryManager from "../components/categories/CategoryManager";
@@ -7,6 +7,13 @@ import CategoryManager from "../components/categories/CategoryManager";
 export default function Categories() {
   const [categories, setCategories] = useState(baseCategories);
   const [showManager, setShowManager] = useState(false);
+  const [selectedType, setSelectedType] = useState("all"); // Filter baru
+
+  // Filter kategori berdasarkan tipe
+  const filteredCategories = categories.filter((cat) => {
+    if (selectedType === "all") return true;
+    return cat.type === selectedType;
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
@@ -41,6 +48,40 @@ export default function Categories() {
         </motion.button>
       </div>
 
+      {/* FILTER BARU - Simple Filter */}
+      <div className="flex gap-3">
+        <button
+          onClick={() => setSelectedType("all")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+            selectedType === "all"
+              ? "bg-emerald-600 text-white"
+              : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          Semua
+        </button>
+        <button
+          onClick={() => setSelectedType("income")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+            selectedType === "income"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          Pemasukan
+        </button>
+        <button
+          onClick={() => setSelectedType("expense")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium ${
+            selectedType === "expense"
+              ? "bg-rose-600 text-white"
+              : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          Pengeluaran
+        </button>
+      </div>
+
       {/* GRID KATEGORI */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -48,7 +89,7 @@ export default function Categories() {
         transition={{ delay: 0.2 }}
         className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
       >
-        {categories.map((cat) => (
+        {filteredCategories.map((cat) => (
           <motion.div
             key={cat.id}
             whileHover={{ scale: 1.02 }}
@@ -77,19 +118,31 @@ export default function Categories() {
         ))}
       </motion.div>
 
-      {/* PANEL KATEGORI */}
-      {showManager && (
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="mt-12 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
-        >
-          <CategoryManager
-            initialCategories={categories}
-            onChange={setCategories}
-          />
-        </motion.div>
+      {/* PANEL KATEGORI dengan AnimatePresence */}
+      <AnimatePresence>
+        {showManager && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ duration: 0.3 }}
+            className="mt-12 bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
+          >
+            <CategoryManager
+              initialCategories={categories}
+              onChange={setCategories}
+              onClose={() => setShowManager(false)} // Props baru
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Empty State sederhana */}
+      {filteredCategories.length === 0 && (
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+          <Folder className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p>Tidak ada kategori yang ditemukan</p>
+        </div>
       )}
     </div>
   );
