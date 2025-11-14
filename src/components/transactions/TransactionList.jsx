@@ -24,31 +24,34 @@ export default function TransactionList({ items, onDelete }) {
             key={tx.id}
             className="flex justify-between items-center py-3 hover:bg-gray-50 dark:hover:bg-gray-700/40 px-2 rounded-lg transition"
           >
+            {/* Kiri */}
             <div className="flex items-center gap-3">
               {tx.type === "income" ? (
                 <ArrowUpCircle className="w-5 h-5 text-green-500" />
               ) : (
                 <ArrowDownCircle className="w-5 h-5 text-red-500" />
               )}
+
               <div>
                 <p className="font-medium text-gray-800 dark:text-gray-100">
                   {tx.category}
                 </p>
+
                 {tx.description && (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {tx.description}
                   </p>
                 )}
+
                 <p className="text-xs text-gray-400 mt-1">{tx.date}</p>
               </div>
             </div>
 
+            {/* Kanan */}
             <div className="flex flex-col items-end">
               <span
                 className={`font-semibold ${
-                  tx.type === "income"
-                    ? "text-green-500"
-                    : "text-red-500"
+                  tx.type === "income" ? "text-green-500" : "text-red-500"
                 }`}
               >
                 {tx.type === "income" ? "+" : "-"} {formatCurrency(tx.amount)}
