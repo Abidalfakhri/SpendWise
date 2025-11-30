@@ -91,7 +91,7 @@ export default function Dashboard() {
       }
       const token = localStorage.getItem("token");
       
-      const userRes = await fetch(`http://localhost:5000/api/user/profile`, { 
+      const userRes = await fetch(`https://spend-wise-ruby.vercel.app/api/user/profile`, { 
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -128,7 +128,7 @@ export default function Dashboard() {
       // --- Fetch Category Summary ---
       try {
         const categoryRes = await fetch(
-          `http://localhost:5000/api/analytics/expenses-by-category/${userId}`,
+          `https://spend-wise-ruby.vercel.app/api/analytics/expenses-by-category/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -153,7 +153,7 @@ export default function Dashboard() {
       // --- Fetch Recent Transactions ---
       try {
         const transactionsRes = await fetch(
-          `http://localhost:5000/api/transactions?userId=${userId}&limit=5`,
+          `https://spend-wise-ruby.vercel.app/api/transactions?userId=${userId}&limit=5`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -174,7 +174,7 @@ export default function Dashboard() {
       // --- Fetch Weekly Trend ---
       try {
         const trendRes = await fetch(
-          `http://localhost:5000/api/analytics/weekly-trend/${userId}`,
+          `https://spend-wise-ruby.vercel.app/api/analytics/weekly-trend/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
