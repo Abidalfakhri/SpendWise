@@ -84,7 +84,7 @@ export default function Mutasi() {
     try {
       const token = localStorage.getItem("token");
       
-      const userRes = await fetch("http://localhost:5000/api/user/profile", {
+      const userRes = await fetch("https://spend-wise-ruby.vercel.app/api/user/profile", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const userData = await userRes.json();
@@ -93,7 +93,7 @@ export default function Mutasi() {
         setUserData(userData.data);
       }
 
-      const transRes = await fetch("http://localhost:5000/api/transactions", {
+      const transRes = await fetch("https://spend-wise-ruby.vercel.app/api/transactions", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const transData = await transRes.json();

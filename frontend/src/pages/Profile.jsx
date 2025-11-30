@@ -49,7 +49,7 @@ export default function Profile() {
       }
 
       // 1. Fetch User Profile
-      const userRes = await fetch("http://localhost:5000/api/user/profile", {
+      const userRes = await fetch("https://spend-wise-ruby.vercel.app/api/user/profile", {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
@@ -73,7 +73,7 @@ export default function Profile() {
       }
 
       // 2. Fetch Transactions
-      const transRes = await fetch("http://localhost:5000/api/transactions", {
+      const transRes = await fetch("https://spend-wise-ruby.vercel.app/api/transactions", {
         headers: { "Authorization": `Bearer ${token}` }
       });
 
@@ -162,7 +162,7 @@ export default function Profile() {
     setIsSaving(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/user/profile", {
+      const res = await fetch("https://spend-wise-ruby.vercel.app/api/user/profile", {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -197,7 +197,7 @@ export default function Profile() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/transactions/${id}`, {
+      const res = await fetch(`https://spend-wise-ruby.vercel.app/api/transactions/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });

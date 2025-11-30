@@ -70,7 +70,7 @@ export default function Laporan() {
       const token = localStorage.getItem("token");
       
       // Fetch user data
-      const userRes = await fetch("http://localhost:5000/api/user/profile", {
+      const userRes = await fetch("https://spend-wise-ruby.vercel.app/api/user/profile", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const userData = await userRes.json();
@@ -85,7 +85,7 @@ export default function Laporan() {
       }
 
       // Fetch transactions
-      const transRes = await fetch("http://localhost:5000/api/transactions", {
+      const transRes = await fetch("https://spend-wise-ruby.vercel.app/api/transactions", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const transData = await transRes.json();
