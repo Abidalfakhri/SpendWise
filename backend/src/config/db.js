@@ -8,15 +8,14 @@ const dbConfig = {
     port: Number(process.env.DB_PORT || 5432),
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-};
+    database: process.env.DB_NAME, 
+    family: 4, 
+}
 
 // Pengecekan Kritis Variabel Lingkungan
 const requiredEnv = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME'];
 requiredEnv.forEach(key => {
     if (!process.env[key]) {
-        // Melempar error eksplisit jika variabel hilang, 
-        // agar log di Railway jelas daripada menerima SIGTERM misterius.
         console.error(`🚨 FATAL: Database variable '${key}' missing.`);
         throw new Error(`Missing DB variable: ${key}`);
     }
@@ -37,7 +36,6 @@ pool.connect()
     })
     .catch(err => {
         console.error("❌ Database connection failed at startup:", err.message);
-        // Melempar error agar server tidak berjalan tanpa DB
         throw err; 
     });
 
