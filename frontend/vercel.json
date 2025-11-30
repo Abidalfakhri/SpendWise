@@ -1,7 +1,17 @@
+
 {
+
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": "vite"
+  "framework": "vite",
+
+
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://spendwise-production-cded.up.railway.app/api/$1"
+    }
+  ]
 }
