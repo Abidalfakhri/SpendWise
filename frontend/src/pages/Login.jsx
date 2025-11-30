@@ -19,7 +19,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch("https://spend-wise-ruby.vercel.app//api/auth/login", {
+      const res = await fetch("https://spend-wise-ruby.vercel.app/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
