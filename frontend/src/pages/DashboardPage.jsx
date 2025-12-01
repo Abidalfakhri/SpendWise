@@ -91,7 +91,7 @@ export default function Dashboard() {
       }
       const token = localStorage.getItem("token");
       
-      const userRes = await fetch(`https://spend-wise-ruby.vercel.app/api/user/profile`, { 
+      const userRes = await fetch(`https://spend-wisee-backend-awdsa.vercel.app/api/user/profile`, { 
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -128,7 +128,7 @@ export default function Dashboard() {
       // --- Fetch Category Summary ---
       try {
         const categoryRes = await fetch(
-          `https://spend-wise-ruby.vercel.app/api/analytics/expenses-by-category/${userId}`,
+          `https://spend-wisee-backend-awdsa.vercel.app/api/analytics/expenses-by-category/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -153,7 +153,7 @@ export default function Dashboard() {
       // --- Fetch Recent Transactions ---
       try {
         const transactionsRes = await fetch(
-          `https://spend-wise-ruby.vercel.app/api/transactions?userId=${userId}&limit=5`,
+          `https://spend-wisee-backend-awdsa.vercel.app/api/transactions?userId=${userId}&limit=5`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -174,7 +174,7 @@ export default function Dashboard() {
       // --- Fetch Weekly Trend ---
       try {
         const trendRes = await fetch(
-          `https://spend-wise-ruby.vercel.app/api/analytics/weekly-trend/${userId}`,
+          `https://spend-wisee-backend-awdsa.vercel.app/api/analytics/weekly-trend/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

@@ -80,7 +80,7 @@ export default function CategoryManager({ onClose }) {
             const token = localStorage.getItem("token");
             if (!token) return; 
 
-            const res = await fetch(`https://spend-wise-ruby.vercel.app/api/categories`, {
+            const res = await fetch(`https://spend-wisee-backend-awdsa.vercel.app/api/categories`, {
                 headers: { 
                     Authorization: `Bearer ${token}` 
                 },
@@ -140,7 +140,7 @@ export default function CategoryManager({ onClose }) {
                 icon: iconNameForDb || formData.icon, 
             };
             
-            const response = await fetch("https://spend-wise-ruby.vercel.app/api/categories", {
+            const response = await fetch(`https://spend-wisee-backend-awdsa.vercel.app/api/categories`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -203,7 +203,7 @@ export default function CategoryManager({ onClose }) {
             };
 
             const response = await fetch(
-                `https://spend-wise-ruby.vercel.app/api/categories/${editingId}`,
+                `https://spend-wisee-backend-awdsa.vercel.app/api/categories/${editingId}`,
                 {
                     method: "PUT",
                     headers: {
@@ -245,7 +245,7 @@ export default function CategoryManager({ onClose }) {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `https://spend-wise-ruby.vercel.app/api/categories/${categoryId}`,
+                `https://spend-wisee-backend-awdsa.vercel.app/api/categories/${categoryId}`,
                 {
                     method: "DELETE",
                     headers: {

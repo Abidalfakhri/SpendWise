@@ -327,7 +327,7 @@ export default function Transactions() {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const res = await fetch(`https://spend-wise-ruby.vercel.app/api/categories`, {
+            const res = await fetch(`${import.meta.env.vite_api_url}/api/categories`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -361,7 +361,7 @@ export default function Transactions() {
                 return;
             }
             
-            const res = await fetch(`https://spend-wise-ruby.vercel.app/api/transactions`, { 
+            const res = await fetch(`${import.meta.env.vite_api_url}/api/transactions`, { 
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -472,8 +472,8 @@ export default function Transactions() {
 
         try {
             const url = editingId
-                ? `https://spend-wise-ruby.vercel.app/api/transactions/${editingId}`
-                : "https://spend-wise-ruby.vercel.app/api/transactions";
+                ? `${import.meta.env.vite_api_url}/api/transactions/${editingId}`
+                : "${import.meta.env.vite_api_url}/api/transactions";
 
             const method = editingId ? "PUT" : "POST";
 
@@ -526,7 +526,7 @@ export default function Transactions() {
         }
 
         try {
-            const res = await fetch(`https://spend-wise-ruby.vercel.app/api/transactions/${id}`, {
+            const res = await fetch(`${import.meta.env.vite_api_url}/api/transactions/${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
