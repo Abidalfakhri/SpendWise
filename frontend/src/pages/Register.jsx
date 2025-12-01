@@ -28,7 +28,7 @@ export default function Register() {
     try {
       setLoading(true);
 
-      const res = await fetch("https://spend-wise-ruby.vercel.app/api/auth/register", {
+      const res = await fetch(`${import.meta.env.vite_api_url}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, username, password }),

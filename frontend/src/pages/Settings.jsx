@@ -66,7 +66,7 @@ export default function Settings() {
         }
 
         try {
-            const userRes = await fetch("https://spend-wise-ruby.vercel.app/api/user/profile", {
+            const userRes = await fetch(`${import.meta.env.vite_api_url}/api/user/profile`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
 
