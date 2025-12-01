@@ -70,7 +70,7 @@ export default function Laporan() {
       const token = localStorage.getItem("token");
       
       // Fetch user data
-      const userRes = await fetch(`${import.meta.env.VITE.API.URL}/api/user/profile`, {
+      const userRes = await fetch(`https://spend-wisee-backend-awdsa.vercel.app/api/user/profile`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const userData = await userRes.json();
@@ -85,7 +85,7 @@ export default function Laporan() {
       }
 
       // Fetch transactions
-      const transRes = await fetch(`${import.meta.env.vite_api_url}/api/transactions`, {
+      const transRes = await fetch(`https://spend-wisee-backend-awdsa.vercel.app/api/transactions`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const transData = await transRes.json();
