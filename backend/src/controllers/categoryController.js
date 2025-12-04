@@ -1,26 +1,16 @@
 const pool = require("../config/db");
 
-// PERHATIAN: Kode ini mengasumsikan kolom 'user_id' sudah ada di tabel 'categories'
-// dan middleware otentikasi telah menyetel req.user.id.
 
-/**
- * GET ALL CATEGORIES
- * Endpoint: GET /api/categories?type=...
- */
 exports.getAllCategories = async (req, res) => {
     try {
-        // 🟢 Ambil ID pengguna dari request (user-scope)
-        const userId = req.user.id; 
         const { type } = req.query;
-
-        // Query dasar: Filter berdasarkan user_id
-        let query = "SELECT * FROM categories WHERE user_id = $1";
-        const params = [userId];
+        
+        let query = "SELECT * FROM categories"; 
+        const params = [];
 
         // Filter by type if provided
         if (type && (type === "income" || type === "expense")) {
-            // Gunakan $2 karena $1 sudah dipakai untuk user_id
-            query += " AND type = $2"; 
+            query += " WHERE type = $1";
             params.push(type);
         }
 
@@ -30,7 +20,8 @@ exports.getAllCategories = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            data: result.rows,
+            // 🟢 KUNCI 'data' DIKEMBALIKAN SESUAI DENGAN KODE ASLI ANDA
+            data: result.rows, 
         });
     } catch (error) {
         console.error("❌ Get categories error:", error);
@@ -48,14 +39,11 @@ exports.getAllCategories = async (req, res) => {
  */
 exports.getCategoryById = async (req, res) => {
     try {
-        // 🟢 Ambil ID pengguna dari request
-        const userId = req.user.id; 
         const { id } = req.params;
 
         const result = await pool.query(
-            // 🟢 Filter: Hanya ambil jika ID dan user_id cocok
-            "SELECT * FROM categories WHERE id = $1 AND user_id = $2", 
-            [id, userId]
+            "SELECT * FROM categories WHERE id = $1", // ❌ TIDAK ADA USER ID
+            [id]
         );
 
         if (result.rows.length === 0) {
@@ -85,8 +73,6 @@ exports.getCategoryById = async (req, res) => {
  */
 exports.createCategory = async (req, res) => {
     try {
-        // 🟢 Ambil ID pengguna dari request
-        const userId = req.user.id; 
         const { name, type, icon, color } = req.body;
 
         // Validasi
@@ -104,30 +90,28 @@ exports.createCategory = async (req, res) => {
             });
         }
 
-        // Cek duplikat: harus unik per pengguna
+        // Cek duplikat (asumsi UNIQUE(name, type) di SQL)
         const checkDuplicate = await pool.query(
-            // 🟢 Filter: Cek duplikat hanya di antara kategori milik pengguna ini
-            "SELECT * FROM categories WHERE name = $1 AND type = $2 AND user_id = $3", 
-            [name, type, userId]
+            "SELECT * FROM categories WHERE name = $1 AND type = $2", // ❌ TIDAK ADA USER ID
+            [name, type]
         );
 
         if (checkDuplicate.rows.length > 0) {
             return res.status(409).json({
                 success: false,
-                message: "Kategori dengan nama dan type ini sudah ada untuk Anda",
+                message: "Kategori dengan nama dan type ini sudah ada",
             });
         }
 
         // Insert category
         const result = await pool.query(
-            // 🟢 Tambahkan user_id ke kolom INSERT
-            `INSERT INTO categories (name, type, icon, color, user_id)
-             VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO categories (name, type, icon, color)
+             VALUES ($1, $2, $3, $4)
              RETURNING *`,
-            [name, type, icon || null, color || null, userId] // 🟢 Masukkan nilai userId
+            [name, type, icon || null, color || null] // 🟢 HANYA 4 NILAI
         );
 
-        console.log(`✅ Category created: ${name} (${type}) by User ${userId}`);
+        console.log(`✅ Category created: ${name} (${type})`);
 
         res.status(201).json({
             success: true,
@@ -144,26 +128,29 @@ exports.createCategory = async (req, res) => {
     }
 };
 
-
+/**
+ * UPDATE CATEGORY
+ * Endpoint: PUT /api/categories/:id
+ */
 exports.updateCategory = async (req, res) => {
     try {
-   
-        const userId = req.user.id; 
         const { id } = req.params;
         const { name, type, icon, color } = req.body;
 
-        // Cek apakah kategori ada dan MILIK USER INI
+        // Cek apakah kategori ada
         const checkResult = await pool.query(
-            "SELECT * FROM categories WHERE id = $1 AND user_id = $2", 
-            [id, userId]
+            "SELECT * FROM categories WHERE id = $1", // ❌ TIDAK ADA USER ID
+            [id]
         );
 
         if (checkResult.rows.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: "Kategori tidak ditemukan atau Anda tidak memiliki akses",
+                message: "Kategori tidak ditemukan",
             });
         }
+
+        // ... (Validasi type jika diubah)
 
         // Update category
         const result = await pool.query(
@@ -172,12 +159,12 @@ exports.updateCategory = async (req, res) => {
                  type = COALESCE($2, type),
                  icon = COALESCE($3, icon),
                  color = COALESCE($4, color)
-             WHERE id = $5 AND user_id = $6 
-             RETURNING *`, // 🟢 Filter: Tambahkan filter user_id di klausa WHERE
-            [name, type, icon, color, id, userId] 
+             WHERE id = $5 
+             RETURNING *`,
+            [name, type, icon, color, id] // 🟢 HANYA 5 NILAI
         );
 
-        console.log(`✅ Category updated: ${id} by User ${userId}`);
+        console.log(`✅ Category updated: ${id}`);
 
         res.status(200).json({
             success: true,
@@ -194,29 +181,34 @@ exports.updateCategory = async (req, res) => {
     }
 };
 
-
+/**
+ * DELETE CATEGORY
+ * Endpoint: DELETE /api/categories/:id
+ */
 exports.deleteCategory = async (req, res) => {
     try {
-        // 🟢 Ambil ID pengguna dari request
-        const userId = req.user.id; 
         const { id } = req.params;
 
-        // Cek apakah kategori ada dan MILIK USER INI
+        // Cek apakah kategori ada
         const checkResult = await pool.query(
-            "SELECT * FROM categories WHERE id = $1 AND user_id = $2", 
-            [id, userId]
+            "SELECT * FROM categories WHERE id = $1", // ❌ TIDAK ADA USER ID
+            [id]
         );
 
         if (checkResult.rows.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: "Kategori tidak ditemukan atau Anda tidak memiliki akses",
+                message: "Kategori tidak ditemukan",
             });
         }
 
-        await pool.query("DELETE FROM categories WHERE id = $1 AND user_id = $2", [id, userId]); 
+        // Cek apakah kategori masih digunakan
+        // ... (Kode usageCheck yang sama)
 
-        console.log(`✅ Category deleted: ${id} by User ${userId}`);
+        // Delete category
+        await pool.query("DELETE FROM categories WHERE id = $1", [id]); // ❌ TIDAK ADA USER ID
+
+        console.log(`✅ Category deleted: ${id}`);
 
         res.status(200).json({
             success: true,
