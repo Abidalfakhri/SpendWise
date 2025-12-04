@@ -1,13 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { X, Plus, Edit2, Trash2, Save, Loader } from "lucide-react";
 
-// ============================================
-// 🟢 MAPS UNTUK MENERJEMAHKAN IKON (DB String ⇌ UI Emoji)
-// ============================================
 
-// Map Ikon dari Database (string) ke Emoji (untuk Tampilan UI)
 const iconMap = {
-    // Contoh mapping standar dari Lucide icon names ke Emoji
     'briefcase': '💼', 
     'laptop': '💻',    
     'trending-up': '📈', 
