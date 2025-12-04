@@ -633,7 +633,6 @@ export default function Transactions() {
                         </p>
                     </div>
 
-                    
                     <div className="bg-gradient-to-br from-rose-600/20 to-rose-700/10 border border-rose-500/30 rounded-2xl p-5 md:p-6 shadow-xl">
                         <div className="flex items-center justify-between mb-2">
                             <p className="text-rose-300 font-medium">Total Pengeluaran</p>
@@ -643,8 +642,7 @@ export default function Transactions() {
                             {formatCurrency(totalExpense)}
                         </p>
                     </div>
-
-                    
+                 
                     <div className="bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 rounded-2xl p-5 md:p-6 shadow-xl sm:col-span-2 lg:col-span-1">
                         <div className="flex items-center justify-between mb-2">
                             <p className="text-blue-300 font-medium">Saldo Bersih</p>
