@@ -1,9 +1,6 @@
 // FILE: backend/src/controllers/userController.js
-const pool = require('../config/db'); // ⬅️ HANYA DEKLARASI SATU KALI
+const pool = require('../config/db'); 
 
-// ===============================================
-// FUNGSI UNTUK USER PROFILE (Menggunakan Token ID)
-// ===============================================
 
 // GET user profile
 const getProfile = async (req, res) => {

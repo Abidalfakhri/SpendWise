@@ -38,6 +38,7 @@ const userRoutes = require('./src/routes/userRoutes');
 const transactionRoutes = require('./src/routes/transactionRoutes');
 const categoryRoutes = require('./src/routes/categoryRoutes');
 const analyticsRoutes = require('./src/routes/analyticsRoutes');
+const savingsGoalsRoutes = require('./src/routes/savingsGoals');
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -45,6 +46,8 @@ app.use('/api/user', authenticateToken, userRoutes);
 app.use('/api/transactions', authenticateToken, transactionRoutes);
 app.use('/api/categories', authenticateToken, categoryRoutes);
 app.use('/api/analytics', authenticateToken, analyticsRoutes);
+app.use('/api/savings-goals', savingsGoalsRoutes);
+
 
 // Health check
 app.get('/api/health', (req, res) => {
