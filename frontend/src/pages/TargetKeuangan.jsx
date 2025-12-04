@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   PiggyBank,
   PlusCircle,
@@ -7,84 +7,84 @@ import {
   TrendingUp,
   Edit,
   ArrowUpRight,
-  XCircle,
   Plane,
   Laptop,
   Home,
   Gift,
   Car,
   Heart,
-  Calendar, // Tambah ikon untuk deadline
-  DollarSign, // Tambah ikon untuk nominal
-  Tag, // Tambah ikon untuk kategori
+  Calendar,
+  DollarSign,
+  Tag,
+  Loader,
+  ArrowLeft,
+  X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { formatCurrency } from "@/utils/formatCurrency";
 
-const categories = [
-  { id: "travel", name: "Liburan", icon: Plane, color: "bg-sky-500" },
-  { id: "tech", name: "Gadget", icon: Laptop, color: "bg-indigo-500" },
-  { id: "house", name: "Rumah", icon: Home, color: "bg-amber-500" },
-  { id: "gift", name: "Hadiah", icon: Gift, color: "bg-pink-500" },
-  { id: "vehicle", name: "Kendaraan", icon: Car, color: "bg-emerald-500" },
-  { id: "health", name: "Kesehatan", icon: Heart, color: "bg-red-500" },
+const categoryIcons = {
+  "Liburan": Plane,
+  "Gadget": Laptop,
+  "Rumah": Home,
+  "Hadiah": Gift,
+  "Kendaraan": Car,
+  "Kesehatan": Heart,
+  "Transportasi": Car,
+  "Makanan": Gift,
+  "Belanja": Gift,
+  "Hiburan": Heart,
+  "Pendidikan": Laptop,
+  "Investasi": TrendingUp,
+  "Tabungan": PiggyBank,
+  "Lainnya": Tag,
+};
+
+const categoryColors = [
+  "bg-sky-500",
+  "bg-indigo-500",
+  "bg-amber-500",
+  "bg-pink-500",
+  "bg-emerald-500",
+  "bg-red-500",
+  "bg-purple-500",
+  "bg-teal-500",
+  "bg-orange-500",
+  "bg-cyan-500",
 ];
 
-// Komponen Pembantu untuk Input Form
-const FormInput = ({ icon: Icon, ...props }) => (
-  <div className="relative">
-    {Icon && (
-      <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-    )}
-    <input
-      {...props}
-      className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-emerald-500 focus:border-emerald-500 transition-colors placeholder:text-gray-500 dark:placeholder:text-gray-400"
-    />
-  </div>
-);
+const formatCurrency = (amount) => {
+  if (isNaN(amount) || amount === null) return "Rp0";
+  try {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch (e) {
+    return `Rp${amount.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+  }
+};
 
-// Komponen Pembantu untuk Select Form
-const FormSelect = ({ icon: Icon, children, ...props }) => (
-  <div className="relative">
-    {Icon && (
-      <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
-    )}
-    <select
-      {...props}
-      className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl appearance-none dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-    >
-      {children}
-    </select>
-  </div>
-);
-
+const formatAmountDisplay = (value) => {
+  if (typeof value === 'number') {
+    value = value.toString();
+  }
+  if (!value) return "";
+  
+  let num = value.toString().replace(/[^0-9]/g, "");
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
 
 export default function TargetKeuangan() {
-  const [targets, setTargets] = useState([
-    {
-      id: 1,
-      name: "Beli Laptop Baru",
-      category: "tech",
-      targetAmount: 15000000,
-      savedAmount: 3500000,
-      deadline: "2025-12-30",
-      color: "bg-indigo-500",
-    },
-    {
-      id: 2,
-      name: "Dana Liburan ke Bali",
-      category: "travel",
-      targetAmount: 8000000,
-      savedAmount: 4000000,
-      deadline: "2025-08-01",
-      color: "bg-sky-500",
-    },
-  ]);
-
+  const [targets, setTargets] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedTarget, setSelectedTarget] = useState(null);
   const [addAmount, setAddAmount] = useState("");
+  const [msg, setMsg] = useState("");
+  const [dbCategories, setDbCategories] = useState([]);
 
   const [newTarget, setNewTarget] = useState({
     name: "",
@@ -94,56 +94,151 @@ export default function TargetKeuangan() {
     category: "",
   });
 
-  const [msg, setMsg] = useState("");
-
   const handleInputAmount = (field, value) => {
-    // Menghapus semua karakter non-digit kecuali tanda minus (jika diperlukan)
-    const raw = value.replace(/[^\d]/g, ""); 
-    const formatted = new Intl.NumberFormat("id-ID").format(raw || 0);
+    const raw = value.replace(/[^\d]/g, "");
+    const formatted = formatAmountDisplay(raw);
     setNewTarget({ ...newTarget, [field]: formatted });
   };
 
   const handleInputModalAmount = (value) => {
     const raw = value.replace(/[^\d]/g, "");
-    const formatted = new Intl.NumberFormat("id-ID").format(raw || 0);
+    const formatted = formatAmountDisplay(raw);
     setAddAmount(formatted);
   };
 
+  const fetchCategories = useCallback(async () => {
+    setLoadingCategories(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
-  const handleAddTarget = () => {
-    // Hapus titik/koma pemisah ribuan sebelum konversi ke angka
-    const target = parseFloat(newTarget.targetAmount.replace(/\./g, "").replace(/,/g, "")) || 0;
-    const saved = parseFloat(newTarget.savedAmount.replace(/\./g, "").replace(/,/g, "")) || 0;
+      const res = await fetch(`https://spend-wisee-backend-awdsa.vercel.app/api/categories`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        const allCategories = data.data.map(cat => cat.name);
+        setDbCategories(allCategories);
+      } else {
+        console.error("❌ Error fetching categories:", data.message);
+      }
+    } catch (err) {
+      console.error("❌ Error fetching categories:", err);
+    } finally {
+      setLoadingCategories(false);
+    }
+  }, []);
+
+  const fetchTargets = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      const res = await fetch(`https://spend-wisee-backend-awdsa.vercel.app/api/savings-goals`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        alert("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      const data = await res.json();
+      
+      if (data.success) {
+        setTargets(data.data || []);
+      } else {
+        console.error("❌ Error:", data.message);
+      }
+    } catch (err) {
+      console.error("❌ Error fetching targets:", err);
+      setMsg("Gagal memuat data target keuangan");
+      setTimeout(() => setMsg(""), 3000);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Sesi telah berakhir. Silakan login kembali.");
+      return;
+    }
+    fetchTargets();
+    fetchCategories();
+  }, [fetchTargets, fetchCategories]);
+
+  const handleAddTarget = async () => {
+    const target = parseFloat(newTarget.targetAmount.replace(/\./g, "")) || 0;
+    const saved = parseFloat(newTarget.savedAmount.replace(/\./g, "")) || 0;
 
     if (!newTarget.name || !target || !newTarget.deadline || !newTarget.category) {
       setMsg("Lengkapi semua data target!");
-      // Ubah notifikasi error menjadi warna merah/jingga
-      setTimeout(() => setMsg(""), 3000); 
+      setTimeout(() => setMsg(""), 3000);
       return;
     }
 
-    const cat = categories.find((c) => c.id === newTarget.category);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
 
-    const newData = {
-      id: Date.now(),
-      name: newTarget.name,
-      category: newTarget.category,
-      targetAmount: target,
-      savedAmount: saved,
-      deadline: newTarget.deadline,
-      color: cat.color,
-    };
-    setTargets([...targets, newData]);
-    setShowForm(false);
-    setNewTarget({
-      name: "",
-      targetAmount: "",
-      savedAmount: "",
-      deadline: "",
-      category: "",
-    });
-    setMsg("✅ Target keuangan berhasil ditambahkan!");
-    setTimeout(() => setMsg(""), 3000);
+      const payload = {
+        name: newTarget.name,
+        category: newTarget.category,
+        target_amount: target,
+        saved_amount: saved,
+        deadline: newTarget.deadline,
+      };
+
+      const res = await fetch(`https://spend-wisee-backend-awdsa.vercel.app/api/savings-goals`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        alert("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      if (data.success) {
+        await fetchTargets();
+        setShowForm(false);
+        setNewTarget({
+          name: "",
+          targetAmount: "",
+          savedAmount: "",
+          deadline: "",
+          category: "",
+        });
+        setMsg("✅ Target keuangan berhasil ditambahkan!");
+        setTimeout(() => setMsg(""), 3000);
+      } else {
+        setMsg(data.message || "Gagal menambahkan target");
+        setTimeout(() => setMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error("❌ Error adding target:", err);
+      setMsg("Terjadi kesalahan saat menambahkan target");
+      setTimeout(() => setMsg(""), 3000);
+    }
   };
 
   const handleOpenModal = (target) => {
@@ -152,31 +247,92 @@ export default function TargetKeuangan() {
     setShowModal(true);
   };
 
-  const handleAddSaving = () => {
-    const nominal = parseFloat(addAmount.replace(/\./g, "").replace(/,/g, ""));
+  const handleAddSaving = async () => {
+    const nominal = parseFloat(addAmount.replace(/\./g, ""));
     if (!nominal || nominal <= 0) {
       setMsg("Nominal tabungan harus lebih dari 0.");
       setTimeout(() => setMsg(""), 3000);
       return;
     }
 
-    setTargets(
-      targets.map((t) =>
-        t.id === selectedTarget.id
-          ? { ...t, savedAmount: t.savedAmount + nominal }
-          : t
-      )
-    );
-    setShowModal(false);
-    setMsg("💰 Tabungan berhasil ditambahkan!");
-    setTimeout(() => setMsg(""), 3000);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      const res = await fetch(
+        `https://spend-wisee-backend-awdsa.vercel.app/api/savings-goals/${selectedTarget.id}/add-savings`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ amount: nominal }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        alert("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      if (data.success) {
+        await fetchTargets();
+        setShowModal(false);
+        setMsg("💰 Tabungan berhasil ditambahkan!");
+        setTimeout(() => setMsg(""), 3000);
+      } else {
+        setMsg(data.message || "Gagal menambahkan tabungan");
+        setTimeout(() => setMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error("❌ Error adding savings:", err);
+      setMsg("Terjadi kesalahan saat menambahkan tabungan");
+      setTimeout(() => setMsg(""), 3000);
+    }
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Yakin ingin menghapus target ini?")) {
-        setTargets(targets.filter((t) => t.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm("Yakin ingin menghapus target ini?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      const res = await fetch(`https://spend-wisee-backend-awdsa.vercel.app/api/savings-goals/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        alert("Sesi telah berakhir. Silakan login kembali.");
+        return;
+      }
+
+      if (data.success) {
+        await fetchTargets();
         setMsg("🗑️ Target dihapus.");
         setTimeout(() => setMsg(""), 2500);
+      } else {
+        setMsg(data.message || "Gagal menghapus target");
+        setTimeout(() => setMsg(""), 2500);
+      }
+    } catch (err) {
+      console.error("❌ Error deleting target:", err);
+      setMsg("Terjadi kesalahan saat menghapus target");
+      setTimeout(() => setMsg(""), 2500);
     }
   };
 
@@ -189,317 +345,359 @@ export default function TargetKeuangan() {
     return `${diffDays} hari tersisa`;
   };
 
+  const handleBackToDashboard = () => {
+    window.history.back();
+  };
+
+  if (loading && targets.length === 0 || loadingCategories) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader className="w-12 h-12 text-blue-500 animate-spin" />
+          <div className="text-slate-100 text-xl">
+            {loadingCategories ? "Memuat kategori..." : "Memuat target keuangan..."}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-8">
-      {/* Header */}
-      <div className="flex justify-between items-center flex-wrap gap-4 border-b border-gray-200 dark:border-gray-700 pb-4">
-        <div className="flex items-center gap-3">
-          <PiggyBank className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">
-            Target Keuangan
-          </h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100 p-4 md:p-8">
+      <div className="max-w-6xl xl:max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
+            <button
+              onClick={handleBackToDashboard}
+              className="p-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-xl transition-all flex-shrink-0"
+              aria-label="Kembali ke Dashboard"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                <PiggyBank className="w-8 h-8 text-emerald-500" />
+                Target Keuangan
+              </h1>
+              <p className="text-slate-400 text-sm">Kelola dan pantau target tabungan Anda.</p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all hover:scale-[1.02] shadow-lg w-full sm:w-auto flex-shrink-0 ${
+              showForm
+                ? "bg-red-600 hover:bg-red-700 shadow-red-500/30"
+                : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-blue-500/30"
+            }`}
+          >
+            {showForm ? (
+              <>
+                <X className="w-5 h-5" /> Batalkan
+              </>
+            ) : (
+              <>
+                <PlusCircle className="w-5 h-5" /> Buat Target Baru
+              </>
+            )}
+          </button>
         </div>
 
-        <motion.button
-          onClick={() => setShowForm(!showForm)}
-          className={`flex items-center gap-2 px-5 py-2 rounded-full shadow-lg transition-all font-semibold 
-                      ${showForm 
-                        ? "bg-red-600 hover:bg-red-700 text-white" 
-                        : "bg-emerald-600 hover:bg-emerald-700 text-white"
-                      }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {showForm ? (
-            <>
-              <XCircle className="w-5 h-5" /> Batalkan
-            </>
-          ) : (
-            <>
-              <PlusCircle className="w-5 h-5" /> Buat Target Baru
-            </>
-          )}
-        </motion.button>
-      </div>
+        <hr className="border-slate-700" />
 
-      {/* Notifikasi */}
-      <AnimatePresence>
-      {msg && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          className={`p-3 rounded-xl text-sm font-medium ${
-            msg.includes("Lengkapi") || msg.includes("lebih dari 0") 
-                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200"
-                : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200"
-          } flex items-center gap-2`}
-        >
-          <CheckCircle2 className="w-5 h-5" />
-          {msg}
-        </motion.div>
-      )}
-      </AnimatePresence>
-
-      {/* Form Tambah Target */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-xl"
+        {/* Notifikasi */}
+        {msg && (
+          <div
+            className={`p-4 rounded-xl font-medium flex items-center gap-2 animate-fadeIn ${
+              msg.includes("Lengkapi") || msg.includes("lebih dari 0") || msg.includes("Gagal") || msg.includes("kesalahan")
+                ? "bg-amber-500/20 border border-amber-500/30 text-amber-300"
+                : "bg-emerald-500/20 border border-emerald-500/30 text-emerald-300"
+            }`}
           >
-            <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-6 text-xl">
+            <CheckCircle2 className="w-5 h-5" />
+            {msg}
+          </div>
+        )}
+
+        {/* Form Tambah Target */}
+        {showForm && (
+          <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 shadow-xl">
+            <h3 className="font-bold text-slate-200 mb-6 text-xl">
               Detail Target Tabungan
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="relative">
+                <label className="block text-sm font-medium mb-1 text-slate-300">Nama Target <span className="text-rose-400">*</span></label>
+                <TrendingUp className="absolute left-3 bottom-3 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Nama target (mis: Dana Mobil Baru)"
+                  value={newTarget.name}
+                  onChange={(e) =>
+                    setNewTarget({ ...newTarget, name: e.target.value })
+                  }
+                  className="w-full px-4 py-3 pl-10 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
               
-              <FormInput
-                icon={TrendingUp}
-                type="text"
-                placeholder="Nama target (mis: Dana Mobil Baru)"
-                value={newTarget.name}
-                onChange={(e) =>
-                  setNewTarget({ ...newTarget, name: e.target.value })
-                }
-              />
-              
-              <FormSelect
-                icon={Tag}
-                value={newTarget.category}
-                onChange={(e) =>
-                  setNewTarget({ ...newTarget, category: e.target.value })
-                }
-              >
-                <option value="">Pilih Kategori</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
+              <div className="relative">
+                <label className="block text-sm font-medium mb-1 text-slate-300">Kategori <span className="text-rose-400">*</span></label>
+                <Tag className="absolute left-3 bottom-3 w-5 h-5 text-slate-400 pointer-events-none" />
+                <select
+                  value={newTarget.category}
+                  onChange={(e) =>
+                    setNewTarget({ ...newTarget, category: e.target.value })
+                  }
+                  className="w-full px-4 py-3 pl-10 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+                  disabled={loadingCategories}
+                >
+                  <option value="">
+                    {loadingCategories ? "Memuat kategori..." : "Pilih Kategori"}
                   </option>
-                ))}
-              </FormSelect>
+                  {dbCategories.map((catName) => (
+                    <option key={catName} value={catName}>
+                      {catName}
+                    </option>
+                  ))}
+                </select>
+              </div>
               
-              <FormInput
-                icon={DollarSign}
-                type="text"
-                placeholder="Target Nominal (mis: 15.000.000)"
-                value={newTarget.targetAmount}
-                onChange={(e) =>
-                  handleInputAmount("targetAmount", e.target.value)
-                }
-              />
+              <div className="relative">
+                <label className="block text-sm font-medium mb-1 text-slate-300">Target Nominal <span className="text-rose-400">*</span></label>
+                <DollarSign className="absolute left-3 bottom-3 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Target Nominal (mis: 15.000.000)"
+                  value={newTarget.targetAmount}
+                  onChange={(e) =>
+                    handleInputAmount("targetAmount", e.target.value)
+                  }
+                  className="w-full px-4 py-3 pl-10 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-              <FormInput
-                icon={PiggyBank}
-                type="text"
-                placeholder="Tabungan awal (jika ada)"
-                value={newTarget.savedAmount}
-                onChange={(e) =>
-                  handleInputAmount("savedAmount", e.target.value)
-                }
-              />
+              <div className="relative">
+                <label className="block text-sm font-medium mb-1 text-slate-300">Tabungan Awal</label>
+                <PiggyBank className="absolute left-3 bottom-3 w-5 h-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Tabungan awal (jika ada)"
+                  value={newTarget.savedAmount}
+                  onChange={(e) =>
+                    handleInputAmount("savedAmount", e.target.value)
+                  }
+                  className="w-full px-4 py-3 pl-10 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-              <FormInput
-                icon={Calendar}
-                type="date"
-                value={newTarget.deadline}
-                onChange={(e) =>
-                  setNewTarget({ ...newTarget, deadline: e.target.value })
-                }
-              />
+              <div className="relative">
+                <label className="block text-sm font-medium mb-1 text-slate-300">Batas Waktu <span className="text-rose-400">*</span></label>
+                <Calendar className="absolute left-3 bottom-3 w-5 h-5 text-slate-400" />
+                <input
+                  type="date"
+                  value={newTarget.deadline}
+                  onChange={(e) =>
+                    setNewTarget({ ...newTarget, deadline: e.target.value })
+                  }
+                  className="w-full px-4 py-3 pl-10 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+                />
+              </div>
             </div>
 
             <div className="flex justify-end mt-7">
-              <motion.button
+              <button
                 onClick={handleAddTarget}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-full font-bold shadow-md transition-all"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.98 }}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all"
               >
                 Simpan Target
-              </motion.button>
+              </button>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
-      {/* Daftar Target */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {targets.length === 0 ? (
-             <div className="col-span-full text-center py-10 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
-                <PiggyBank className="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-gray-600" />
-                <p className="text-gray-500 dark:text-gray-400">Belum ada target tabungan yang dibuat. Mulai sekarang!</p>
-             </div>
-        ) : (
+        {/* Daftar Target */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {targets.length === 0 ? (
+            <div className="col-span-full text-center py-12 border border-dashed border-slate-700 rounded-xl bg-slate-800/30">
+              <PiggyBank className="w-12 h-12 mx-auto mb-3 text-slate-500" />
+              <p className="text-slate-400 text-lg mb-6">Belum ada target tabungan yang dibuat. Mulai sekarang!</p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold transition-all shadow-md shadow-blue-500/20"
+              >
+                Buat Target Pertama
+              </button>
+            </div>
+          ) : (
             targets.map((t) => {
-              const progress = Math.min((t.savedAmount / t.targetAmount) * 100, 100);
-              const cat = categories.find((c) => c.id === t.category);
-              const Icon = cat?.icon || TrendingUp;
+              const progress = Math.min((t.saved_amount / t.target_amount) * 100, 100);
+              const Icon = categoryIcons[t.category] || TrendingUp;
+              const colorIndex = dbCategories.indexOf(t.category) % categoryColors.length;
+              const color = categoryColors[colorIndex];
               const isDone = progress >= 100;
               const daysRemaining = getDaysRemaining(t.deadline);
               
               const progressColor = isDone 
-                ? "from-green-400 to-green-600" 
+                ? "bg-gradient-to-r from-green-500 to-green-600" 
                 : daysRemaining === "Telah Lewat"
-                    ? "from-red-400 to-red-600"
-                    : "from-emerald-400 to-emerald-600"; // Mengubah dari blue ke emerald
+                  ? "bg-gradient-to-r from-red-500 to-red-600"
+                  : "bg-gradient-to-r from-blue-500 to-purple-600";
 
               return (
-                <motion.div
+                <div
                   key={t.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 flex flex-col justify-between transform hover:scale-[1.01]"
+                  className="bg-slate-800/50 border border-slate-700 rounded-2xl shadow-lg hover:shadow-xl hover:border-slate-600 transition-all duration-300 p-6 flex flex-col justify-between"
                 >
-                  {/* Top: Icon & Title */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <div
-                            className={`w-12 h-12 rounded-xl flex items-center justify-center text-white ${cat?.color} shadow-md`}
-                        >
-                            <Icon className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-gray-900 dark:text-white text-xl leading-snug">
-                            {t.name}
-                            </h3>
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
-                                <Tag className="w-3 h-3"/>
-                                {cat?.name}
-                            </p>
-                        </div>
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center text-white ${color} shadow-md`}
+                      >
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-100 text-xl leading-snug">
+                          {t.name}
+                        </h3>
+                        <p className="text-xs font-medium text-slate-400 flex items-center gap-1 mt-1">
+                          <Tag className="w-3 h-3"/>
+                          {t.category}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   
-                  {/* Progress Section */}
                   <div className="my-4">
-                    <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2 flex justify-between">
+                    <p className="text-xs font-semibold uppercase text-slate-400 mb-2 flex justify-between">
                       <span>{isDone ? "SELESAI" : "PROGRESS"}</span>
-                      <span className="font-bold text-sm text-emerald-500">{progress.toFixed(1)}%</span>
+                      <span className="font-bold text-sm text-blue-400">{progress.toFixed(1)}%</span>
                     </p>
                     
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 h-2.5 rounded-full overflow-hidden">
-                      <motion.div
-                        className={`h-2.5 rounded-full bg-gradient-to-r ${progressColor}`}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        transition={{ duration: 1 }}
-                      ></motion.div>
+                    <div className="w-full bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                      <div
+                        className={`h-2.5 rounded-full ${progressColor} transition-all duration-1000`}
+                        style={{ width: `${progress}%` }}
+                      ></div>
                     </div>
                   </div>
                   
-                  {/* Amount & Deadline */}
                   <div className="mb-4 text-sm">
                     <div className="flex justify-between items-center py-1">
-                        <span className="text-gray-500 dark:text-gray-400">Terkumpul</span>
-                        <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(t.savedAmount)}</span>
+                      <span className="text-slate-400">Terkumpul</span>
+                      <span className="font-bold text-slate-100">{formatCurrency(t.saved_amount)}</span>
                     </div>
-                    <div className="flex justify-between items-center py-1 border-b border-dashed border-gray-300 dark:border-gray-700">
-                        <span className="text-gray-500 dark:text-gray-400">Target</span>
-                        <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(t.targetAmount)}</span>
+                    <div className="flex justify-between items-center py-1 border-b border-dashed border-slate-700">
+                      <span className="text-slate-400">Target</span>
+                      <span className="font-bold text-slate-100">{formatCurrency(t.target_amount)}</span>
                     </div>
                     <div className="flex justify-between items-center pt-2">
-                        <span className="text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                            <Calendar className="w-4 h-4"/> Batas Waktu
-                        </span>
-                        <span className={`font-semibold ${daysRemaining === "Telah Lewat" ? "text-red-500" : "text-gray-700 dark:text-gray-300"}`}>
-                            {t.deadline} ({daysRemaining})
-                        </span>
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <Calendar className="w-4 h-4"/> Batas Waktu
+                      </span>
+                      <span className={`font-semibold text-xs ${daysRemaining === "Telah Lewat" ? "text-red-400" : "text-slate-300"}`}>
+                        {new Date(t.deadline).toLocaleDateString('id-ID')} ({daysRemaining})
+                      </span>
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <motion.button
+                  <div className="flex justify-between items-center pt-4 border-t border-slate-700">
+                    <button
                       onClick={() => handleOpenModal(t)}
-                      className="flex items-center gap-1 text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition font-medium"
+                      className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition font-medium"
                       disabled={isDone}
-                      whileHover={{ x: 2 }}
                     >
                       <ArrowUpRight className="w-4 h-4" /> 
                       {isDone ? "Selesai" : "Tambah Dana"}
-                    </motion.button>
+                    </button>
                     
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() =>
                           alert("Fitur edit target akan ditambahkan di versi berikutnya")
                         }
-                        className="p-1 rounded-full text-gray-500 hover:text-yellow-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                        className="p-1 rounded-full text-slate-400 hover:text-yellow-400 hover:bg-slate-700 transition"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(t.id)}
-                        className="p-1 rounded-full text-gray-500 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                        className="p-1 rounded-full text-slate-400 hover:text-red-400 hover:bg-slate-700 transition"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Modal Tambah Tabungan (Diperbaiki) */}
-      <AnimatePresence>
+        {/* Modal Tambah Tabungan */}
         {showModal && selectedTarget && (
-          <motion.div
+          <div
             className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowModal(false)} // Klik di luar modal untuk menutup
+            onClick={() => setShowModal(false)}
           >
-            <motion.div
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-gray-200 dark:border-gray-700"
-              initial={{ scale: 0.9, y: 50 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 50 }}
-              onClick={(e) => e.stopPropagation()} // Mencegah penutupan saat klik di dalam modal
+            <div
+              className="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                Tambah Dana
-              </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-                Target: **{selectedTarget.name}**
-              </p>
-              
-              <div className="relative mb-5">
-                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
-                 <input
-                    type="text"
-                    value={addAmount}
-                    onChange={(e) => handleInputModalAmount(e.target.value)}
-                    placeholder="Masukkan nominal tabungan"
-                    className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-xl dark:bg-gray-900 dark:border-gray-700 dark:text-white focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
-                  />
-              </div>
-
-              <div className="flex justify-end gap-3 mt-5">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-100">
+                    Tambah Dana
+                  </h3>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Target: <strong>{selectedTarget.name}</strong>
+                  </p>
+                </div>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 rounded-full font-medium bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition text-gray-700 dark:text-gray-300"
+                  className="p-1 hover:bg-slate-700 rounded-lg transition-all flex-shrink-0"
+                  aria-label="Tutup Modal"
                 >
-                  Batal
+                  <X className="w-5 h-5" />
                 </button>
+              </div>
+              
+              <div className="relative mb-5">
+                <label className="block text-sm font-medium mb-1 text-slate-300">Jumlah <span className="text-rose-400">*</span></label>
+                <span className="absolute left-3 bottom-3 text-slate-400 text-sm font-medium">Rp</span>
+                <input
+                  type="text"
+                  value={addAmount}
+                  onChange={(e) => handleInputModalAmount(e.target.value)}
+                  placeholder="Masukkan nominal tabungan"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="bg-blue-500/20 border border-blue-500/30 rounded-xl p-3 mb-5">
+                <p className="text-xs text-blue-300">
+                  💡 Menambah dana akan mengurangi saldo Anda dan tercatat sebagai pengeluaran dengan kategori "Tabungan - {selectedTarget.name}"
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2 mt-5">
                 <button
                   onClick={handleAddSaving}
-                  className="px-5 py-2.5 rounded-full font-medium bg-emerald-600 hover:bg-emerald-700 text-white transition"
+                  className="w-full px-5 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/30"
                 >
                   Simpan
                 </button>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="w-full px-5 py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold transition-all"
+                >
+                  Batal
+                </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }
