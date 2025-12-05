@@ -52,7 +52,7 @@ const TransactionListItem = React.memo(({ tx, handleEdit, handleDelete }) => {
     const isIncome = tx.type === "income";
     const amountColor = isIncome ? "text-emerald-400" : "text-rose-400";
     const iconBg = isIncome ? "bg-emerald-500/20" : "bg-rose-500/20";
-    const icon = isIncome ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />;
+    const icon = isIncome ? <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" /> : <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5" />;
 
     const formattedDate = new Date(tx.date).toLocaleDateString("id-ID", {
         weekday: "long",
@@ -62,30 +62,28 @@ const TransactionListItem = React.memo(({ tx, handleEdit, handleDelete }) => {
     });
 
     return (
-        <div
-            className="flex items-center justify-between p-4 bg-slate-700/30 hover:bg-slate-700/50 rounded-xl transition-all border border-slate-700/50 group"
-        >
-            <div className="flex items-center gap-4 min-w-0">
-                <div className={`p-3 rounded-xl ${iconBg} ${amountColor} flex-shrink-0`}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-slate-700/30 hover:bg-slate-700/50 rounded-xl transition-all border border-slate-700/50 group">
+            <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                <div className={`p-2 sm:p-3 rounded-xl ${iconBg} ${amountColor} flex-shrink-0`}>
                     {icon}
                 </div>
 
-                <div className="min-w-0 truncate">
-                    <p className="font-semibold text-lg truncate" title={tx.category}>{tx.category}</p>
-                    <p className="text-sm text-slate-400 truncate" title={tx.description || "Tidak ada deskripsi"}>
+                <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-base sm:text-lg truncate" title={tx.category}>{tx.category}</p>
+                    <p className="text-xs sm:text-sm text-slate-400 truncate" title={tx.description || "Tidak ada deskripsi"}>
                         {tx.description || <span className="italic">Tidak ada deskripsi</span>}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">{formattedDate}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 sm:mt-1">{formattedDate}</p>
                 </div>
             </div>
 
-            <div className="flex items-center gap-4 flex-shrink-0 ml-4">
-                <p className={`text-xl md:text-2xl font-bold whitespace-nowrap ${amountColor}`}>
+            <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 flex-shrink-0">
+                <p className={`text-lg sm:text-xl md:text-2xl font-bold whitespace-nowrap ${amountColor}`}>
                     {isIncome ? "+" : "-"}
                     {formatCurrency(tx.amount)}
                 </p>
 
-                <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                <div className="flex gap-2">
                     <button
                         onClick={() => handleEdit(tx)}
                         className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-all"
@@ -133,15 +131,15 @@ const TransactionModal = ({
 
     return (
         <div 
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-[1000] p-4 pt-10 sm:p-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center sm:items-start justify-center z-[1000] p-4 sm:pt-10 overflow-y-auto"
             onClick={handleClose}
         >
             <div 
-                className="bg-slate-800 border border-slate-700 rounded-xl p-5 w-full max-w-sm my-8 transform transition-all"
+                className="bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-5 w-full max-w-sm my-auto sm:my-8 transform transition-all"
                 onClick={e => e.stopPropagation()} 
             >
                 <div className="flex items-start justify-between mb-4">
-                    <h2 className="text-xl font-bold">
+                    <h2 className="text-lg sm:text-xl font-bold">
                         {editingId ? "✍️ Edit Transaksi" : "➕ Tambah Transaksi"}
                     </h2>
                     <button
@@ -153,31 +151,31 @@ const TransactionModal = ({
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                     <div>
                         <label className="block text-sm font-medium mb-2">Tipe Transaksi</label>
                         <div className="grid grid-cols-2 gap-2">
                             <button
                                 type="button"
                                 onClick={() => setFormData({ ...formData, type: "income", category: "" })}
-                                className={`py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-1 ${
+                                className={`py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1 ${
                                     isIncome
                                         ? "bg-emerald-600 text-white"
                                         : "bg-slate-700 text-slate-400 hover:bg-slate-600"
                                 }`}
                             >
-                                <TrendingUp className="w-4 h-4" /> Pemasukan
+                                <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" /> Pemasukan
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setFormData({ ...formData, type: "expense", category: "" })}
-                                className={`py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-1 ${
+                                className={`py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1 ${
                                     !isIncome
                                         ? "bg-rose-600 text-white"
                                         : "bg-slate-700 text-slate-400 hover:bg-slate-600"
                                 }`}
                             >
-                                <TrendingDown className="w-4 h-4" /> Pengeluaran
+                                <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4" /> Pengeluaran
                             </button>
                         </div>
                     </div>
@@ -187,7 +185,7 @@ const TransactionModal = ({
                         <select
                             value={formData.category}
                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            className="w-full px-3 py-2.5 text-sm bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+                            className="w-full px-3 py-2 sm:py-2.5 text-sm bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                             required
                             disabled={loadingCategories}
                         >
@@ -212,7 +210,7 @@ const TransactionModal = ({
                                  value={displayAmount}
                                  onChange={handleAmountChange} 
                                  placeholder="Cth: 1.000.000,50"
-                                 className="w-full pl-10 pr-3 py-2.5 text-sm bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                 className="w-full pl-10 pr-3 py-2 sm:py-2.5 text-sm bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                  required
                              />
                         </div>
@@ -224,7 +222,7 @@ const TransactionModal = ({
                             type="date"
                             value={formData.date}
                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                            className="w-full px-3 py-2.5 text-sm bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+                            className="w-full px-3 py-2 sm:py-2.5 text-sm bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                             required
                         />
                     </div>
@@ -236,22 +234,22 @@ const TransactionModal = ({
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             placeholder="Catatan tambahan..."
                             rows={2} 
-                            className="w-full px-3 py-2.5 text-sm bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                            className="w-full px-3 py-2 sm:py-2.5 text-sm bg-slate-700 border border-slate-600 rounded-lg text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                         />
                     </div>
 
                     <div className="flex flex-col gap-2 pt-2">
                         <button
                             type="submit"
-                            className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                            className="w-full px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 text-sm"
                         >
-                            <Check className="w-5 h-5" />
+                            <Check className="w-4 h-4 sm:w-5 sm:h-5" />
                             {editingId ? "Update" : "Simpan"}
                         </button>
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="w-full px-4 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-all"
+                            className="w-full px-4 py-2 sm:py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-all text-sm"
                         >
                             Batal
                         </button>
@@ -575,10 +573,10 @@ export default function Transactions() {
 
     if (loading && transactions.length === 0 || loadingCategories) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
                 <div className="flex flex-col items-center gap-4">
-                    <Loader className="w-12 h-12 text-blue-500 animate-spin" />
-                    <div className="text-slate-100 text-xl">
+                    <Loader className="w-10 h-10 sm:w-12 sm:h-12 text-blue-500 animate-spin" />
+                    <div className="text-slate-100 text-lg sm:text-xl text-center">
                         {loadingCategories ? "Memuat kategori..." : "Memuat transaksi..."}
                     </div>
                 </div>
@@ -587,21 +585,22 @@ export default function Transactions() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100 p-4 md:p-8">
-            <div className="max-w-6xl xl:max-w-7xl mx-auto space-y-8">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100 p-3 sm:p-4 md:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 lg:space-y-8">
                 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 md:gap-4">
+                {/* Header Section - Fully Responsive */}
+                <div className="flex flex-col gap-3 sm:gap-4">
+                    <div className="flex items-start gap-3 sm:gap-4">
                         <button
                             onClick={handleBackToDashboard}
                             className="p-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-xl transition-all flex-shrink-0"
                             aria-label="Kembali ke Dashboard"
                         >
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                         </button>
-                        <div>
-                            <h1 className="text-3xl font-extrabold tracking-tight">💰 Transaksi Keuangan</h1>
-                            <p className="text-slate-400 text-sm">Kelola, filter, dan edit semua catatan keuangan Anda.</p>
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight truncate">💰 Transaksi Keuangan</h1>
+                            <p className="text-slate-400 text-xs sm:text-sm mt-0.5">Kelola, filter, dan edit semua catatan keuangan Anda.</p>
                         </div>
                     </div>
 
@@ -610,10 +609,10 @@ export default function Transactions() {
                             resetForm();
                             setShowModal(true);
                         }}
-                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl font-semibold transition-all hover:scale-[1.02] shadow-lg shadow-blue-500/30 w-full sm:w-auto flex-shrink-0"
+                        className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl font-semibold transition-all hover:scale-[1.02] shadow-lg shadow-blue-500/30 w-full text-sm sm:text-base"
                         disabled={loadingCategories} 
                     >
-                        <Plus className="w-5 h-5" />
+                        <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                         Tambah Transaksi
                     </button>
                 </div>
@@ -621,70 +620,70 @@ export default function Transactions() {
                 <hr className="border-slate-700"/>
 
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {/* Stats Cards - Fully Responsive */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
                     
-                    <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 border border-emerald-500/30 rounded-2xl p-5 md:p-6 shadow-xl">
+                    <div className="bg-gradient-to-br from-emerald-600/20 to-emerald-700/10 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 md:p-6 shadow-xl">
                         <div className="flex items-center justify-between mb-2">
-                            <p className="text-emerald-300 font-medium">Total Pemasukan</p>
-                            <TrendingUp className="w-6 h-6 text-emerald-400" />
+                            <p className="text-emerald-300 font-medium text-xs sm:text-sm">Total Pemasukan</p>
+                            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
                         </div>
-                        <p className="text-3xl lg:text-4xl font-extrabold tracking-tight">
+                        <p className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold tracking-tight break-all">
                             {formatCurrency(totalIncome)}
                         </p>
                     </div>
 
-                    <div className="bg-gradient-to-br from-rose-600/20 to-rose-700/10 border border-rose-500/30 rounded-2xl p-5 md:p-6 shadow-xl">
+                    <div className="bg-gradient-to-br from-rose-600/20 to-rose-700/10 border border-rose-500/30 rounded-2xl p-4 sm:p-5 md:p-6 shadow-xl">
                         <div className="flex items-center justify-between mb-2">
-                            <p className="text-rose-300 font-medium">Total Pengeluaran</p>
-                            <TrendingDown className="w-6 h-6 text-rose-400" />
+                            <p className="text-rose-300 font-medium text-xs sm:text-sm">Total Pengeluaran</p>
+                            <TrendingDown className="w-5 h-5 sm:w-6 sm:h-6 text-rose-400" />
                         </div>
-                        <p className="text-3xl lg:text-4xl font-extrabold tracking-tight">
+                        <p className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold tracking-tight break-all">
                             {formatCurrency(totalExpense)}
                         </p>
                     </div>
                  
-                    <div className="bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 rounded-2xl p-5 md:p-6 shadow-xl sm:col-span-2 lg:col-span-1">
+                    <div className="bg-gradient-to-br from-blue-600/20 to-blue-700/10 border border-blue-500/30 rounded-2xl p-4 sm:p-5 md:p-6 shadow-xl sm:col-span-2 lg:col-span-1">
                         <div className="flex items-center justify-between mb-2">
-                            <p className="text-blue-300 font-medium">Saldo Bersih</p>
-                            <DollarSign className="w-6 h-6 text-blue-400" />
+                            <p className="text-blue-300 font-medium text-xs sm:text-sm">Saldo Bersih</p>
+                            <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
                         </div>
-                        <p className={`text-3xl lg:text-4xl font-extrabold tracking-tight ${balance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                        <p className={`text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold tracking-tight break-all ${balance >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                             {formatCurrency(balance)}
                         </p>
                     </div>
                 </div>
 
                 
-                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4 md:p-6">
-                    <h3 className="text-lg font-semibold mb-4 text-slate-200 flex items-center gap-2">
-                        <Search className="w-5 h-5 text-slate-400"/> Pencarian & Filter
+                {/* Search & Filter Section - Fully Responsive */}
+                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-3 sm:p-4 md:p-6">
+                    <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-slate-200 flex items-center gap-2">
+                        <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400"/> Pencarian & Filter
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
                         
                         <div className="relative md:col-span-2">
-                            <label htmlFor="search-input" className="block text-sm font-medium mb-1 text-slate-300">Cari Kategori/Deskripsi</label>
-                            {/* PERBAIKAN: Menggunakan offset yang dikalkulasi untuk sejajar vertikal */}
-                            <Search className="absolute left-3 top-[36px] w-5 h-5 text-slate-400" /> 
+                            <label htmlFor="search-input" className="block text-xs sm:text-sm font-medium mb-1 text-slate-300">Cari Kategori/Deskripsi</label>
+                            <Search className="absolute left-3 top-[calc(1.75rem+0.25rem)] sm:top-[calc(2rem+0.25rem)] w-4 h-4 sm:w-5 sm:h-5 text-slate-400 pointer-events-none" /> 
                             <input
                                 id="search-input"
                                 type="text"
                                 placeholder="Cari transaksi..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                             />
                         </div>
 
                         
                         <div className="relative">
-                            <label htmlFor="filter-type" className="block text-sm font-medium mb-1 text-slate-300">Filter Tipe</label>
-                            {/* PERBAIKAN: Menggunakan offset yang dikalkulasi untuk sejajar vertikal */}
-                            <Filter className="absolute left-3 top-[36px] w-5 h-5 text-slate-400 pointer-events-none" />
+                            <label htmlFor="filter-type" className="block text-xs sm:text-sm font-medium mb-1 text-slate-300">Filter Tipe</label>
+                            <Filter className="absolute left-3 top-[calc(1.75rem+0.25rem)] sm:top-[calc(2rem+0.25rem)] w-4 h-4 sm:w-5 sm:h-5 text-slate-400 pointer-events-none" />
                             <select
                                 id="filter-type"
                                 value={filterType}
                                 onChange={(e) => setFilterType(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+                                className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 bg-slate-700 border border-slate-600 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer text-sm sm:text-base"
                             >
                                 <option value="all">Semua Transaksi</option>
                                 <option value="income">Pemasukan</option>
@@ -694,13 +693,13 @@ export default function Transactions() {
                     </div>
                     
                     {(searchTerm || filterType !== "all") && (
-                        <div className="mt-4 flex justify-end">
+                        <div className="mt-3 sm:mt-4 flex justify-end">
                             <button
                                 onClick={() => {
                                     setSearchTerm("");
                                     setFilterType("all");
                                 }}
-                                className="px-5 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-medium"
+                                className="px-4 sm:px-5 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-300 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm font-medium"
                             >
                                 <X className="w-4 h-4" />
                                 Reset Filter
@@ -711,19 +710,21 @@ export default function Transactions() {
 
 
                 
-                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-4 md:p-6">
-                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                        <Calendar className="w-6 h-6 text-blue-400"/> Daftar Transaksi ({filteredTransactions.length})
+                {/* Transaction List - Fully Responsive */}
+                <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-3 sm:p-4 md:p-6">
+                    <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+                        <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400"/> 
+                        <span className="truncate">Daftar Transaksi ({filteredTransactions.length})</span>
                     </h2>
 
                     {loading ? (
-                        <div className="text-center py-12">
+                        <div className="text-center py-8 sm:py-12">
                             <Loader className="w-8 h-8 text-blue-500 animate-spin mx-auto mb-4" />
-                            <p className="text-slate-400 text-lg">Memuat data transaksi...</p>
+                            <p className="text-slate-400 text-base sm:text-lg">Memuat data transaksi...</p>
                         </div>
                     ) : filteredTransactions.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-slate-400 text-lg mb-6">
+                        <div className="text-center py-8 sm:py-12 px-4">
+                            <p className="text-slate-400 text-base sm:text-lg mb-4 sm:mb-6">
                                 {searchTerm || filterType !== "all" ? 
                                     "Tidak ada transaksi yang cocok dengan filter saat ini." : 
                                     "Belum ada transaksi yang tercatat."
@@ -734,13 +735,13 @@ export default function Transactions() {
                                     resetForm();
                                     setShowModal(true);
                                 }}
-                                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold transition-all shadow-md shadow-blue-500/20"
+                                className="px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 rounded-xl font-semibold transition-all shadow-md shadow-blue-500/20 text-sm sm:text-base"
                             >
                                 Tambah Transaksi Pertama
                             </button>
                         </div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                             {filteredTransactions
                                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                                 .map((tx) => (
@@ -757,6 +758,7 @@ export default function Transactions() {
                 </div>
 
                 
+                {/* Transaction Modal */}
                 <TransactionModal
                     showModal={showModal}
                     setShowModal={setShowModal}
